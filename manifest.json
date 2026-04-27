@@ -1,30 +1,53 @@
 {
-	"manifest_version": 2,
+  "manifest_version": 3,
+  "name": "Akusento",
+  "version": "1.0",
+  "description": "Highlights Japanese pitch accent patterns on web pages.",
 
-	"name": "akusento",
-	"version": "0.0.1",
-	"author": "Étienne Plante",
-	"description": "Colors japanese words according to their pitch accent",
+  "background": {
+    "service_worker": "src/background.js"
+  },
 
-	"permissions": ["storage", "*://*/*"],
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
 
-	"icons": { 
-		"48": "images/icon48.png",
-		"128": "images/icon128.png" 
-	},
+  "action": {
+    "default_title": "Akusento",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
 
-	"browser_action": {
-    "default_icon": "images/icon48.png"
-	},
-	
-	"background": {
-		"scripts": ["src/background.js"]
-	},
-	
-	"content_scripts": [
-		{
-			"matches": ["<all_urls>"],
-			"css": ["src/pitch_color.css"]
-		}
-	]
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "content_scripts": [],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "rakutenma/rakutenma.js",
+        "rakutenma/model_ja.js",
+        "rakutenma/hanzenkaku.js",
+        "data/dict.js",
+        "src/tokenizer.js",
+        "src/akusento.js",
+        "src/pitch_color.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

@@ -92,13 +92,17 @@ function processTextNode(textNode) {
   for (const token of tokens) {
     const [word, pos] = token;
 
-    if (pos && pos.startsWith('N')) {
-      const span = getAccentSpan(word);
-      if (span) {
-        fragment.appendChild(span);
-        changed = true;
-        continue;
-      }
+    // ADDED: Explicitly skip particles ('P') so they are not highlighted
+    if (pos && pos.startsWith('P')) {
+      fragment.appendChild(document.createTextNode(word));
+      continue;
+    }
+
+    const span = getAccentSpan(word);
+    if (span) {
+      fragment.appendChild(span);
+      changed = true;
+      continue;
     }
 
     fragment.appendChild(document.createTextNode(word));
@@ -110,13 +114,10 @@ function processTextNode(textNode) {
 }
 
 function markTextAccents() {
-  const paragraphs = document.getElementsByTagName('p');
-
-  for (const paragraph of paragraphs) {
-    const textNodes = getTextNodes(paragraph);
-    for (const textNode of textNodes) {
-      processTextNode(textNode);
-    }
+  // Broadened to search the whole body instead of just <p> tags
+  const textNodes = getTextNodes(document.body);
+  for (const textNode of textNodes) {
+    processTextNode(textNode);
   }
 }
 
