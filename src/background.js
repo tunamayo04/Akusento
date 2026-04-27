@@ -1,101 +1,85 @@
 let isOn = false;
-chrome.storage.sync.set({
-  showAccents: false
-})
+
+chrome.storage.sync.set({ showAccents: false });
 
 const setListeners = () => {
   chrome.tabs.onActivated.addListener((activeInfo) => {
     toggleAccentsOnTab(activeInfo.tabId);
-  })
-  
-  chrome.tabs.onUpdated.addListener((activeInfo) => {
-    toggleAccentsOnTab(activeInfo.tabId);
-  })
-  
-  chrome.browserAction.onClicked.addListener(() => {
+  });
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.status === 'complete') {
+      toggleAccentsOnTab(tabId);
+    }
+  });
+
+  chrome.action.onClicked.addListener(() => {
     isOn = !isOn;
-  
-    chrome.storage.sync.set({
-      showAccents: isOn
-    });
-  
+
+    chrome.storage.sync.set({ showAccents: isOn });
+
     setBadge();
     toggleAccentsOnAllTabs();
-  })
-}
+  });
+};
 
 const setBadge = () => {
-  const text = isOn ? 'ON' : ''; 
-  if(chrome.browserAction.setBadgeText) {
-    chrome.browserAction.setBadgeBackgroundColor({color: "#f24438"})
-    chrome.browserAction.setBadgeText({text});
-  }
-}
+  const text = isOn ? 'ON' : '';
+  chrome.action.setBadgeBackgroundColor({ color: '#f24438' });
+  chrome.action.setBadgeText({ text });
+};
 
-// TODO: Find a better way to do this
 const loadDependencies = (id) => {
-  chrome.tabs.executeScript(id, {
-    file: 'rakutenma/rakutenma.js'
-  }, () => {
-    if(chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
-    }
-  });
+  // MV3: use chrome.scripting.executeScript with files array
+  const files = [
+    'rakutenma/rakutenma.js',
+    'rakutenma/model_ja.js',
+    'rakutenma/hanzenkaku.js',
+    'data/dict.js',
+    'src/tokenizer.js',
+    'src/akusento.js',
+  ];
 
-  chrome.tabs.executeScript(id, {
-    file: 'rakutenma/model_ja.js'
-  }, () => {
-    if(chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
+  // Scripts must be injected sequentially to respect load order
+  const injectSequentially = async (files) => {
+    // Inject CSS first
+    try {
+      await chrome.scripting.insertCSS({
+        target: { tabId: id },
+        files: ['src/pitch_color.css'],
+      });
+    } catch (err) {
+      console.log('Error injecting pitch_color.css:', err.message);
     }
-  });
 
-  chrome.tabs.executeScript(id, {
-    file: 'rakutenma/hanzenkaku.js'
-  }, () => {
-    if(chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
+    // Then inject JS files in order
+    for (const file of files) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: id },
+          files: [file],
+        });
+      } catch (err) {
+        console.log(`Error injecting ${file}:`, err.message);
+      }
     }
-  });
+  };
 
-  chrome.tabs.executeScript(id, {
-    file: 'data/dict.js'
-  }, () => {
-    if(chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
-    }
-  });
-
-  chrome.tabs.executeScript(id, {
-    file: 'src/tokenizer.js'
-  }, () => {
-    if(chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
-    }
-  });
-}
+  injectSequentially(files);
+};
 
 const toggleAccentsOnAllTabs = () => {
-  chrome.tabs.query({currentWindow: true}, (tabs) => {
+  chrome.tabs.query({ currentWindow: true }, (tabs) => {
     tabs.forEach((tab) => {
       toggleAccentsOnTab(tab.id);
     });
-  });  
-}
+  });
+};
 
 const toggleAccentsOnTab = (id) => {
-  if(isOn)
-  {
+  if (isOn) {
     loadDependencies(id);
-
-    chrome.tabs.executeScript(id, {
-      file: 'src/akusento.js'
-    }, () => {
-      if(chrome.runtime.lastError) {
-        console.log(chrome.runtime.lastError.message);
-      }
-    });
   }
-}
+};
 
 setListeners();
