@@ -3,14 +3,6 @@ function containsJapanese(text) {
   return regex.test(text);
 }
 
-function removeFurigana() {
-  let furigana = document.getElementsByTagName('rt');
-
-  if (furigana.length === 0) return;
-
-  while (furigana[0]) furigana[0].remove();
-}
-
 function getDictionnaryEntryFromKanji(word) {
   let entry = dict.find((entry) => entry.kanji === word);
   return entry ? entry : null;
@@ -28,62 +20,125 @@ function getPitchPattern(pitchMora, wordLength) {
   else return 'nakadaka';
 }
 
-function tagWordAccent(word) {
+function getAccentSpan(word) {
   let dictEntry =
     getDictionnaryEntryFromKanji(word) || getDictionnaryEntryFromPronunciation(word);
 
   if (dictEntry) {
-    var pitchMora = dictEntry.pitchMora[0][0];
-    return `<span class="${getPitchPattern(pitchMora, dictEntry.pronunciation.length)}">${word}</span>`;
-  } else {
-    return word;
+    const pitchMora = dictEntry.pitchMora[0][0];
+    const span = document.createElement('span');
+    span.className = getPitchPattern(pitchMora, dictEntry.pronunciation.length);
+    span.textContent = word;
+    return span;
+  }
+  return null;
+}
+
+function isInsideAccentSpan(node) {
+  let current = node.parentElement;
+  while (current) {
+    if (
+      current.tagName === 'SPAN' &&
+      (current.classList.contains('heiban') ||
+        current.classList.contains('atamadaka') ||
+        current.classList.contains('nakadaka') ||
+        current.classList.contains('odaka') ||
+        current.classList.contains('kifuku'))
+    )
+      return true;
+    current = current.parentElement;
+  }
+  return false;
+}
+
+function getTextNodes(element) {
+  const textNodes = [];
+  const walker = document.createTreeWalker(
+    element,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        if (node.parentElement && node.parentElement.closest('rt')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (isInsideAccentSpan(node)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (!node.textContent.trim()) {
+          return NodeFilter.FILTER_SKIP;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    }
+  );
+
+  let node;
+  while ((node = walker.nextNode())) {
+    textNodes.push(node);
+  }
+  return textNodes;
+}
+
+function processTextNode(textNode) {
+  const text = textNode.textContent;
+  if (!containsJapanese(text)) return;
+
+  const tokens = tokenize(text);
+  if (!tokens || tokens.length === 0) return;
+
+  const fragment = document.createDocumentFragment();
+  let changed = false;
+
+  for (const token of tokens) {
+    const [word, pos] = token;
+
+    if (pos && pos.startsWith('N')) {
+      const span = getAccentSpan(word);
+      if (span) {
+        fragment.appendChild(span);
+        changed = true;
+        continue;
+      }
+    }
+
+    fragment.appendChild(document.createTextNode(word));
+  }
+
+  if (changed) {
+    textNode.parentNode.replaceChild(fragment, textNode);
   }
 }
 
 function markTextAccents() {
-  let paragraphs = document.getElementsByTagName('p');
+  const paragraphs = document.getElementsByTagName('p');
 
-  for (var i = 0; i < paragraphs.length; i++) {
-    let tokens = tokenize(paragraphs[i].textContent);
-
-    let newHtml = '';
-    for (var j = 0; j < tokens.length; j++) {
-      if (tokens[j][1].startsWith('N')) newHtml += tagWordAccent(tokens[j][0]);
-      else newHtml += tokens[j][0];
+  for (const paragraph of paragraphs) {
+    const textNodes = getTextNodes(paragraph);
+    for (const textNode of textNodes) {
+      processTextNode(textNode);
     }
-
-    paragraphs[i].innerHTML = newHtml;
   }
 }
 
 function removeTextAccents() {
-  let colored = document.querySelectorAll('.heiban, .atamadaka, .nakadaka, .odaka, .kifuku');
+  const colored = document.querySelectorAll('.heiban, .atamadaka, .nakadaka, .odaka, .kifuku');
 
-  for (var i = 0; i < colored.length; i++) {
-    colored[i].classList.remove('heiban');
-    colored[i].classList.remove('atamadaka');
-    colored[i].classList.remove('nakadaka');
-    colored[i].classList.remove('odaka');
-    colored[i].classList.remove('kifuku');
+  for (const el of colored) {
+    el.replaceWith(document.createTextNode(el.textContent));
   }
 }
 
-// MV3: Scripts are injected fresh each time, so read current storage state
-// immediately on injection rather than relying on onChanged events alone.
 chrome.storage.sync.get('showAccents', (result) => {
   if (result.showAccents === true) {
-    removeFurigana();
     markTextAccents();
   } else {
     removeTextAccents();
   }
 });
 
-// Still listen for changes that happen while the page is open
 chrome.storage.onChanged.addListener(function (changes) {
   if ('showAccents' in changes) {
     if (changes.showAccents.newValue === true) {
-      removeFurigana();
       markTextAccents();
     } else {
       removeTextAccents();

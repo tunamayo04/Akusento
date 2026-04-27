@@ -30,7 +30,6 @@ const setBadge = () => {
 };
 
 const loadDependencies = (id) => {
-  // MV3: use chrome.scripting.executeScript with files array
   const files = [
     'rakutenma/rakutenma.js',
     'rakutenma/model_ja.js',
@@ -40,9 +39,7 @@ const loadDependencies = (id) => {
     'src/akusento.js',
   ];
 
-  // Scripts must be injected sequentially to respect load order
   const injectSequentially = async (files) => {
-    // Inject CSS first
     try {
       await chrome.scripting.insertCSS({
         target: { tabId: id },
@@ -52,7 +49,6 @@ const loadDependencies = (id) => {
       console.log('Error injecting pitch_color.css:', err.message);
     }
 
-    // Then inject JS files in order
     for (const file of files) {
       try {
         await chrome.scripting.executeScript({
