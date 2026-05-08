@@ -5,7 +5,7 @@ Akusento is a chrome extension that colors or underlines japanese words accordin
 
 # Pitch accent
 
-The japanese language has 4 main pitch accent patterns; heiban(平板), atamadaka(頭高), nakadaka(中高) and odaka(尾高); a 5th one sometimes combined with nakadaka(中高) is called kifuku(起伏). Correct pitch accent usage is not mandatory for comprehension of the language but is an essential part of sounding native. 
+The japanese language has 4 main pitch accent patterns; heiban(平板), atamadaka(頭高), nakadaka(中高) and odaka(尾高). Correct pitch accent usage is not mandatory for comprehension of the language but is an essential part of sounding native. 
 For more information on pitch accent theory, check out [these resources](https://github.com/olety/japanese-pitch-accent-resources).
 
 ## Getting Started
