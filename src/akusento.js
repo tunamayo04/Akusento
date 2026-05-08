@@ -92,7 +92,6 @@ function processTextNode(textNode) {
   for (const token of tokens) {
     const [word, pos] = token;
 
-    // ADDED: Explicitly skip particles ('P') so they are not highlighted
     if (pos && pos.startsWith('P')) {
       fragment.appendChild(document.createTextNode(word));
       continue;
@@ -114,7 +113,6 @@ function processTextNode(textNode) {
 }
 
 function markTextAccents() {
-  // Broadened to search the whole body instead of just <p> tags
   const textNodes = getTextNodes(document.body);
   for (const textNode of textNodes) {
     processTextNode(textNode);
