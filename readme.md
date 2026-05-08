@@ -10,11 +10,28 @@ For more information on pitch accent theory, check out [these resources](https:/
 
 ## Getting Started
 
-We welcome all contributions. If you wish to work on something with the intention on having it included in the official distribution, please open an issue for discussion and we will give you the heads up to get started. If you want to make  _changes_, we recommend you open an issue with your intentions before spending too much time, to ensure no effort is wasted.
-
-Contributions can be made via pull requests to this repository. If you're unsure of what you can help with, check out the  [list of open issues](https://github.com/zerox029/Akusento/issues).
-
 Note that while we already have certain standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing,  _please_  bring it up. I welcome all feedback so we can make contributing to this project as pain-free as possible.
+
+## Usage Guide
+
+Clone the repo with submodules.
+
+```
+git clone --recurse-submodules https://github.com/tunamayo04/Akusento
+```
+
+- for chrome, navigate to `about:extensions`. Click the `developer mode` slider. Select `load unpacked`.
+- for firefox, I'm not sure how to load it. But it should be a similar setup.
+
+Select the top-level of the folder you cloned.
+
+<img width="95" height="37" alt="Image" src="https://github.com/user-attachments/assets/f98a69ad-67dc-49b1-b59b-7748b95f9b99" />
+
+pin it in the extension menu and click it to turn it on
+
+<img width="87" height="47" alt="Image" src="https://github.com/user-attachments/assets/1b95298a-9a0b-43f0-ab9f-02d45ad1a097" />
+
+<img width="847" height="554" alt="Image" src="https://github.com/user-attachments/assets/f65cd661-db46-42a7-91d8-b6182066dba7" />
 
 ## Licence
 
